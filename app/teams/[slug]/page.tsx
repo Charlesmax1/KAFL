@@ -1,22 +1,17 @@
-import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabaseClient'
 import { 
-  ArrowLeft, 
-  ArrowRight,
+  ArrowRight, 
   MapPin, 
   Trophy, 
   Users, 
-  Calendar, 
-  Award,
-  Twitter,
-  Instagram,
-  Facebook,
-  Youtube,
-  ExternalLink
+  Search,
+  Filter,
+  Calendar,
+  Star
 } from 'lucide-react'
 
-// Team data
+// Team data with emojis and colors
 const teamData = [
   {
     id: '1',
@@ -29,12 +24,7 @@ const teamData = [
     colors: ['#C41E3A', '#0A0A0A'],
     achievements: { titles: 2, years: ['2022', '2024'] },
     emoji: '🦏',
-    description: 'The most successful club in KAFL history with back-to-back championships in 2022 and 2024. Known for their physical style of play and passionate supporters.',
-    social_media: {
-      twitter: 'https://twitter.com/EasternRhinos',
-      instagram: 'https://instagram.com/EasternRhinos',
-      facebook: 'https://facebook.com/EasternRhinos'
-    }
+    description: 'The most successful club in KAFL history with back-to-back championships in 2022 and 2024.'
   },
   {
     id: '2',
@@ -47,11 +37,7 @@ const teamData = [
     colors: ['#F5C518', '#0F3B2A'],
     achievements: { titles: 1, years: ['2023'] },
     emoji: '🐯',
-    description: 'The pride of Victoria, known for their attacking style and passionate supporters. Winners of the 2023 championship.',
-    social_media: {
-      twitter: 'https://twitter.com/NairobiTigers',
-      instagram: 'https://instagram.com/NairobiTigers'
-    }
+    description: 'The pride of Victoria, known for their attacking style and passionate supporters.'
   },
   {
     id: '3',
@@ -64,10 +50,7 @@ const teamData = [
     colors: ['#1A5C3E', '#FFFFFF'],
     achievements: { titles: 0, years: [] },
     emoji: '🦁',
-    description: 'The rising force from Queensland, building a strong foundation for the future with a focus on youth development.',
-    social_media: {
-      instagram: 'https://instagram.com/NyanzaLakers'
-    }
+    description: 'The rising force from Queensland, building a strong foundation for the future.'
   },
   {
     id: '4',
@@ -80,8 +63,7 @@ const teamData = [
     colors: ['#D4A33C', '#0A0A0A'],
     achievements: { titles: 0, years: [] },
     emoji: '🦅',
-    description: 'South Australia\'s finest, with a proud tradition of developing young talent and playing attractive football.',
-    social_media: {}
+    description: 'South Australia\'s finest, with a proud tradition of developing young talent.'
   },
   {
     id: '5',
@@ -94,8 +76,7 @@ const teamData = [
     colors: ['#C41E3A', '#FFFFFF'],
     achievements: { titles: 0, years: [] },
     emoji: '🦌',
-    description: 'Western Australia\'s representatives, bringing a unique style to the league with their fast-paced, attacking football.',
-    social_media: {}
+    description: 'Western Australia\'s representatives, bringing a unique style to the league.'
   },
   {
     id: '6',
@@ -108,8 +89,7 @@ const teamData = [
     colors: ['#FF69B4', '#0A0A0A'],
     achievements: { titles: 0, years: [] },
     emoji: '🦈',
-    description: 'The Tasmanian team with a distinctive identity and growing fan base. Known for their resilience and team spirit.',
-    social_media: {}
+    description: 'The Tasmanian team with a distinctive identity and growing fan base.'
   },
   {
     id: '7',
@@ -122,8 +102,7 @@ const teamData = [
     colors: ['#0F3B2A', '#D4A33C'],
     achievements: { titles: 0, years: [] },
     emoji: '🐃',
-    description: 'One of the newest clubs, representing the Rift Valley community with pride. A team with big ambitions for the future.',
-    social_media: {}
+    description: 'One of the newest clubs, representing the Rift Valley community with pride.'
   },
   {
     id: '8',
@@ -136,12 +115,11 @@ const teamData = [
     colors: ['#0A0A0A', '#FFFFFF'],
     achievements: { titles: 0, years: [] },
     emoji: '🐂',
-    description: 'The powerhouse from the west, ready to make their mark in the inaugural season. Built on strength and determination.',
-    social_media: {}
+    description: 'The powerhouse from the west, ready to make their mark in the inaugural season.'
   }
 ]
 
-// Team color map
+// Team color map for styling
 const teamColors: Record<string, { bg: string, text: string, border: string, light: string }> = {
   'Eastern Rhinos': { bg: 'bg-red-600', text: 'text-red-600', border: 'border-red-600', light: 'bg-red-50' },
   'Nairobi Tigers': { bg: 'bg-yellow-500', text: 'text-yellow-600', border: 'border-yellow-500', light: 'bg-yellow-50' },
@@ -153,280 +131,200 @@ const teamColors: Record<string, { bg: string, text: string, border: string, lig
   'Western Black Bulls': { bg: 'bg-gray-800', text: 'text-gray-800', border: 'border-gray-800', light: 'bg-gray-50' },
 }
 
-export default async function TeamDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params
-  
-  // Find the team
-  const team = teamData.find(t => t.slug === slug)
-  
-  if (!team) {
-    notFound()
-  }
+export default async function TeamsPage() {
+  let teams = teamData
 
-  const colors = teamColors[team.name] || { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-600', light: 'bg-gray-50' }
-  const logoPath = `/images/teams/${team.slug}.png`
-
-  // Fetch players from Supabase if available
-  let players: any[] = []
+  // Fetch teams from Supabase if available
   try {
-    const { data: playersData } = await supabase
-      .from('players')
+    const { data: supabaseTeams } = await supabase
+      .from('teams')
       .select('*')
-      .eq('team_id', team.id)
-      .order('number')
+      .order('name')
 
-    if (playersData && playersData.length > 0) {
-      players = playersData
+    if (supabaseTeams && supabaseTeams.length > 0) {
+      // Merge Supabase data with our local data to preserve emojis and colors
+      teams = supabaseTeams.map((team: any) => {
+        const localTeam = teamData.find(t => t.slug === team.slug)
+        return {
+          ...team,
+          emoji: localTeam?.emoji || '🏉',
+          ...localTeam?.achievements && { achievements: localTeam.achievements }
+        }
+      })
     }
   } catch (error) {
-    console.log('No player data available')
+    console.log('Using local team data')
   }
 
-  // Sample players if no data
-  const samplePlayers = [
-    { id: '1', first_name: 'James', last_name: 'Okello', number: 1, position: 'GK', nationality: 'Kenya' },
-    { id: '2', first_name: 'David', last_name: 'Ouma', number: 2, position: 'DF', nationality: 'Kenya' },
-    { id: '3', first_name: 'Samuel', last_name: 'Kiprop', number: 3, position: 'DF', nationality: 'Kenya' },
-    { id: '4', first_name: 'Peter', last_name: 'Wanjiru', number: 4, position: 'FW', nationality: 'Kenya' },
-    { id: '5', first_name: 'Kevin', last_name: 'Odhiambo', number: 5, position: 'MF', nationality: 'Kenya' },
-    { id: '6', first_name: 'Michael', last_name: 'Ochieng', number: 6, position: 'FW', nationality: 'Kenya' },
-  ]
-
-  const displayPlayers = players.length > 0 ? players : samplePlayers
+  // Get unique states for filter
+  const states = [...new Set(teams.map(t => t.state))].filter(Boolean)
 
   return (
     <div>
       {/* ============================================ */}
-      {/* TEAM HEADER */}
+      {/* PAGE HERO */}
       {/* ============================================ */}
-      <section className={`relative py-12 md:py-16 overflow-hidden ${colors.bg}`}>
-        <div className="absolute inset-0 bg-black/30"></div>
+      <section className="relative py-16 md:py-20 overflow-hidden">
+        <div className="absolute inset-0 gradient-hero"></div>
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 right-0 w-96 h-96 bg-federation-gold rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 left-0 w-96 h-96 bg-federation-red rounded-full blur-3xl"></div>
+        </div>
+
         <div className="container mx-auto px-4 relative z-10">
-          <div className="flex flex-col md:flex-row items-center gap-6">
-            {/* Back Button */}
-            <Link
-              href="/teams"
-              className="absolute top-4 left-4 md:top-6 md:left-6 text-white/80 hover:text-white transition-colors flex items-center gap-1 text-sm"
-            >
-              <ArrowLeft size={16} />
-              Back to Teams
-            </Link>
-
-            {/* Team Logo */}
-            <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center bg-white/10 rounded-full p-4">
-              <img 
-                src={logoPath}
-                alt={team.name}
-                className="w-full h-full object-contain drop-shadow-2xl"
-              />
+          <div className="max-w-3xl">
+            <div className="flex items-center gap-2 text-federation-gold text-sm mb-4">
+              <span className="bg-federation-gold/20 px-3 py-1 rounded-full border border-federation-gold/30">
+                🏉 8 Clubs
+              </span>
             </div>
-
-            {/* Team Info */}
-            <div className="text-center md:text-left text-white">
-              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold font-playfair">
-                {team.name}
-              </h1>
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mt-2 text-white/90">
-                <span className="flex items-center gap-1">
-                  <MapPin size={16} />
-                  {team.city}, {team.state}
-                </span>
-                <span className="flex items-center gap-1">
-                  <Calendar size={16} />
-                  Founded {team.founded_year}
-                </span>
-                {team.achievements.titles > 0 && (
-                  <span className="flex items-center gap-1 bg-federation-gold/20 px-3 py-1 rounded-full text-federation-gold">
-                    <Trophy size={16} />
-                    {team.achievements.titles}x Champion
-                  </span>
-                )}
-              </div>
-              <p className="text-white/80 max-w-2xl mt-4 text-sm md:text-base leading-relaxed">
-                {team.description}
-              </p>
-              {/* Social Media */}
-              {team.social_media && Object.keys(team.social_media).length > 0 && (
-                <div className="flex gap-3 mt-4 justify-center md:justify-start">
-                  {team.social_media.twitter && (
-                    <a href={team.social_media.twitter} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
-                      <Twitter size={20} />
-                    </a>
-                  )}
-                  {team.social_media.instagram && (
-                    <a href={team.social_media.instagram} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
-                      <Instagram size={20} />
-                    </a>
-                  )}
-                  {team.social_media.facebook && (
-                    <a href={team.social_media.facebook} target="_blank" rel="noopener noreferrer" className="text-white/70 hover:text-white transition-colors">
-                      <Facebook size={20} />
-                    </a>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* TEAM NAVIGATION TABS */}
-      {/* ============================================ */}
-      <section className="bg-white border-b border-gray-200 sticky top-16 z-40">
-        <div className="container mx-auto px-4">
-          <div className="flex gap-6 overflow-x-auto py-3">
-            <button className="text-federation-green border-b-2 border-federation-green pb-2 font-semibold whitespace-nowrap">
-              Squad
-            </button>
-            <button className="text-gray-500 hover:text-federation-green transition-colors pb-2 font-medium whitespace-nowrap">
-              Fixtures
-            </button>
-            <button className="text-gray-500 hover:text-federation-green transition-colors pb-2 font-medium whitespace-nowrap">
-              Results
-            </button>
-            <button className="text-gray-500 hover:text-federation-green transition-colors pb-2 font-medium whitespace-nowrap">
-              History
-            </button>
-            <button className="text-gray-500 hover:text-federation-green transition-colors pb-2 font-medium whitespace-nowrap">
-              Gallery
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ============================================ */}
-      {/* SQUAD SECTION */}
-      {/* ============================================ */}
-      <section className="py-12 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-bold text-federation-dark font-playfair">
-                2026 Squad
-              </h2>
-              <p className="text-gray-500 text-sm">{displayPlayers.length} players</p>
-            </div>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
-              <Users size={16} />
-              <span>Full squad coming soon</span>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
-            {displayPlayers.map((player) => (
-              <div
-                key={player.id}
-                className="bg-white rounded-xl shadow-sm hover:shadow-md transition-shadow p-4 text-center border border-gray-100"
-              >
-                <div className="w-16 h-16 mx-auto bg-gray-100 rounded-full flex items-center justify-center text-2xl mb-2">
-                  👤
-                </div>
-                <div className="text-sm font-bold text-federation-dark">
-                  #{player.number}
-                </div>
-                <div className="text-sm font-semibold text-federation-dark">
-                  {player.first_name} {player.last_name}
-                </div>
-                <div className="text-xs text-gray-500">
-                  {player.position}
-                </div>
-                <div className="text-xs text-gray-400 mt-1">
-                  🇰🇪 {player.nationality || 'Kenya'}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* Coming Soon Players */}
-          <div className="mt-6 bg-federation-green/5 rounded-xl p-6 text-center border border-federation-green/20">
-            <p className="text-gray-600 text-sm">
-              🏉 More player profiles will be added as the season approaches.
+            <h1 className="text-4xl md:text-5xl font-bold text-white font-playfair mb-4">
+              Our Teams
+            </h1>
+            <p className="text-lg text-gray-300 leading-relaxed">
+              Meet the 8 clubs that make up the Kenyan Australian Football League. 
+              Each team represents a unique community and brings its own spirit to the league. 
             </p>
           </div>
         </div>
       </section>
 
       {/* ============================================ */}
-      {/* TEAM STATS */}
+      {/* FILTERS & SEARCH */}
       {/* ============================================ */}
-      <section className="py-12 bg-white">
+      <section className="bg-white border-b border-gray-200 py-4 sticky top-16 z-40 shadow-sm">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl font-bold text-federation-dark font-playfair text-center mb-8">
-            Team Statistics
-          </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto">
-            <div className="bg-gray-50 rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-federation-gold">{team.achievements.titles}</div>
-              <div className="text-xs text-gray-500">Championships</div>
+          <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+            <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
+              <span className="text-sm text-gray-500 font-medium mr-2">Filter:</span>
+              <button className="px-4 py-2 bg-federation-green text-white rounded-lg text-sm font-medium hover:bg-federation-green/80 transition-colors">
+                All Teams
+              </button>
+              {states.map((state) => (
+                <button
+                  key={state}
+                  className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
+                >
+                  {state}
+                </button>
+              ))}
             </div>
-            <div className="bg-gray-50 rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-federation-green">0</div>
-              <div className="text-xs text-gray-500">Matches Played</div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-federation-red">0</div>
-              <div className="text-xs text-gray-500">Wins</div>
-            </div>
-            <div className="bg-gray-50 rounded-xl p-6 text-center">
-              <div className="text-2xl font-bold text-federation-gold">0</div>
-              <div className="text-xs text-gray-500">Goals Scored</div>
+            <div className="relative w-full sm:w-64">
+              <input
+                type="text"
+                placeholder="Search teams..."
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:border-federation-gold transition-colors text-sm"
+              />
+              <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
             </div>
           </div>
-          <p className="text-center text-gray-400 text-sm mt-4">
-            📊 Statistics will be updated during the 2026 season
-          </p>
         </div>
       </section>
 
       {/* ============================================ */}
-      {/* UPCOMING FIXTURES */}
+      {/* TEAMS GRID */}
       {/* ============================================ */}
       <section className="py-12 bg-gray-50">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl font-bold text-federation-dark font-playfair">
-              Upcoming Fixtures
-            </h2>
-            <Link
-              href="/fixtures"
-              className="text-federation-green hover:text-federation-gold transition-colors text-sm font-medium inline-flex items-center gap-1"
-            >
-              View All
-              <ArrowRight size={16} />
-            </Link>
-          </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {teams.map((team) => {
+              const colors = teamColors[team.name] || { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-600', light: 'bg-gray-50' }
+              const logoPath = `./images/teams/${team.slug}.png`
+              
+              return (
+                <Link
+                  key={team.id}
+                  href={`/teams/${team.slug}`}
+                  className="group bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden hover:-translate-y-1"
+                >
+                  {/* Team Color Bar */}
+                  <div className={`h-2 ${colors.bg}`}></div>
+                  
+                  {/* Team Content */}
+                  <div className="p-6">
+                    {/* Logo & Name */}
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
+                        <img 
+                          src={logoPath}
+                          alt={team.name}
+                          loading="lazy"
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                        />
+                      </div>
+                      <div>
+                        <h3 className="font-bold text-federation-dark group-hover:text-federation-gold transition-colors">
+                          {team.name}
+                        </h3>
+                        <p className="text-xs text-gray-400">{team.city}</p>
+                      </div>
+                    </div>
 
-          <div className="max-w-2xl mx-auto">
-            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
-              <div className="flex items-center justify-between">
-                <div className="text-center flex-1">
-                  <div className="w-16 h-16 mx-auto flex items-center justify-center">
-                    <img 
-                      src={logoPath}
-                      alt={team.name}
-                      className="w-full h-full object-contain"
-                    />
+                    {/* Description */}
+                    <p className="text-gray-600 text-sm leading-relaxed mb-4 line-clamp-2">
+                      {team.description || `${team.name} competes in the KAFL from ${team.city}, ${team.state}.`}
+                    </p>
+
+                    {/* Details */}
+                    <div className="space-y-1.5 mb-4">
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <MapPin size={14} className="text-federation-gold" />
+                        <span>{team.home_ground}</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                        <Calendar size={14} className="text-federation-gold" />
+                        <span>Founded {team.founded_year}</span>
+                      </div>
+                      {team.achievements?.titles > 0 && (
+                        <div className="flex items-center gap-2 text-xs text-federation-gold font-semibold">
+                          <Trophy size={14} />
+                          <span>{team.achievements.titles}x Champion ({team.achievements.years?.join(', ')})</span>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* CTA */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-federation-green group-hover:text-federation-gold transition-colors">
+                        View Team
+                      </span>
+                      <ArrowRight size={16} className="text-federation-green group-hover:text-federation-gold transition-colors group-hover:translate-x-1" />
+                    </div>
                   </div>
-                  <div className="text-sm font-semibold text-federation-dark mt-1">{team.name}</div>
-                </div>
-                <div className="text-center px-6">
-                  <div className="text-xs text-gray-400 uppercase tracking-wider">VS</div>
-                  <div className="text-federation-gold font-bold text-2xl">🏉</div>
-                </div>
-                <div className="text-center flex-1">
-                  <div className="text-3xl mb-1">🐯</div>
-                  <div className="text-sm font-semibold text-federation-dark">Nairobi Tigers</div>
-                </div>
-              </div>
-              <div className="text-center mt-4 pt-4 border-t border-gray-100">
-                <p className="text-sm text-gray-500">
-                  📅 December 2026 (TBC) • 📍 {team.home_ground}
-                </p>
-                <span className="inline-block mt-2 text-xs bg-federation-green/10 text-federation-green px-3 py-1 rounded-full">
-                  Coming Soon
-                </span>
-              </div>
+                </Link>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+
+      {/* ============================================ */}
+      {/* CTA SECTION */}
+      {/* ============================================ */}
+      <section className="py-16 bg-federation-dark">
+        <div className="container mx-auto px-4">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-2xl md:text-3xl font-bold text-white font-playfair mb-3">
+              Which team will you support?
+            </h2>
+            <p className="text-gray-400 mb-6">
+              Learn more about each club, their history, and their squad for the 2026 season.
+            </p>
+            <div className="flex flex-wrap justify-center gap-4">
+              <Link
+                href="/tickets"
+                className="bg-federation-gold text-federation-dark px-6 py-3 rounded-lg font-semibold hover:bg-yellow-500 transition-colors inline-flex items-center gap-2"
+              >
+                <Trophy size={18} />
+                Get Tickets
+              </Link>
+              <Link
+                href="/fixtures"
+                className="bg-white/10 text-white px-6 py-3 rounded-lg font-semibold border border-white/20 hover:bg-white/20 transition-colors inline-flex items-center gap-2"
+              >
+                <Calendar size={18} />
+                View Fixtures
+              </Link>
             </div>
           </div>
         </div>

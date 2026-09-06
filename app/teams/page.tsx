@@ -229,7 +229,7 @@ export default async function TeamsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {teams.map((team) => {
               const colors = teamColors[team.name] || { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-600', light: 'bg-gray-50' }
-              const logoPath = `/images/teams/${team.slug}.png`
+              const logoPath = `./images/teams/${team.slug}.png`
               
               return (
                 <Link
