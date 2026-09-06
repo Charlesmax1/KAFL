@@ -1,6 +1,5 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
   ArrowLeft, 
@@ -219,17 +218,6 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
                 src={logoPath}
                 alt={team.name}
                 className="w-full h-full object-contain drop-shadow-2xl"
-                onError={(e) => {
-                  // If logo doesn't exist, show emoji
-                  e.currentTarget.style.display = 'none'
-                  const parent = e.currentTarget.parentElement
-                  if (parent) {
-                    const emojiSpan = document.createElement('span')
-                    emojiSpan.className = 'text-7xl md:text-8xl lg:text-9xl drop-shadow-2xl'
-                    emojiSpan.textContent = team.emoji || '🏉'
-                    parent.appendChild(emojiSpan)
-                  }
-                }}
               />
             </div>
 
@@ -418,16 +406,6 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
                       src={logoPath}
                       alt={team.name}
                       className="w-full h-full object-contain"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none'
-                        const parent = e.currentTarget.parentElement
-                        if (parent) {
-                          const emojiSpan = document.createElement('span')
-                          emojiSpan.className = 'text-3xl'
-                          emojiSpan.textContent = team.emoji || '🏉'
-                          parent.appendChild(emojiSpan)
-                        }
-                      }}
                     />
                   </div>
                   <div className="text-sm font-semibold text-federation-dark mt-1">{team.name}</div>

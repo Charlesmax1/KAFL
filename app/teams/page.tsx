@@ -1,5 +1,4 @@
 import Link from 'next/link'
-import Image from 'next/image'
 import { supabase } from '@/lib/supabaseClient'
 import { 
   ArrowRight, 
@@ -250,17 +249,6 @@ export default async function TeamsPage() {
                           src={logoPath}
                           alt={team.name}
                           className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
-                          onError={(e) => {
-                            // If logo doesn't exist, show emoji
-                            e.currentTarget.style.display = 'none'
-                            const parent = e.currentTarget.parentElement
-                            if (parent) {
-                              const emojiSpan = document.createElement('span')
-                              emojiSpan.className = 'text-4xl group-hover:scale-110 transition-transform duration-300'
-                              emojiSpan.textContent = team.emoji || '🏉'
-                              parent.appendChild(emojiSpan)
-                            }
-                          }}
                         />
                       </div>
                       <div>
