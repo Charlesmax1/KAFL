@@ -230,6 +230,7 @@ export default async function TeamsPage() {
           <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {teams.map((team) => {
               const colors = teamColors[team.name] || { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-600', light: 'bg-gray-50' }
+              const logoPath = `/images/teams/${team.slug}.png`
               
               return (
                 <Link
@@ -242,10 +243,25 @@ export default async function TeamsPage() {
                   
                   {/* Team Content */}
                   <div className="p-6">
-                    {/* Emoji & Name */}
+                    {/* Logo & Name */}
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="text-4xl group-hover:scale-110 transition-transform duration-300">
-                        {team.emoji || '🏉'}
+                      <div className="w-14 h-14 flex-shrink-0 flex items-center justify-center">
+                        <img 
+                          src={logoPath}
+                          alt={team.name}
+                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300"
+                          onError={(e) => {
+                            // If logo doesn't exist, show emoji
+                            e.currentTarget.style.display = 'none'
+                            const parent = e.currentTarget.parentElement
+                            if (parent) {
+                              const emojiSpan = document.createElement('span')
+                              emojiSpan.className = 'text-4xl group-hover:scale-110 transition-transform duration-300'
+                              emojiSpan.textContent = team.emoji || '🏉'
+                              parent.appendChild(emojiSpan)
+                            }
+                          }}
+                        />
                       </div>
                       <div>
                         <h3 className="font-bold text-federation-dark group-hover:text-federation-gold transition-colors">

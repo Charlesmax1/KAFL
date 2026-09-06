@@ -165,6 +165,7 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
   }
 
   const colors = teamColors[team.name] || { bg: 'bg-gray-600', text: 'text-gray-600', border: 'border-gray-600', light: 'bg-gray-50' }
+  const logoPath = `/images/teams/${team.slug}.png`
 
   // Fetch players from Supabase if available
   let players: any[] = []
@@ -212,9 +213,24 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
               Back to Teams
             </Link>
 
-            {/* Team Emoji */}
-            <div className="text-7xl md:text-8xl lg:text-9xl drop-shadow-2xl">
-              {team.emoji || '🏉'}
+            {/* Team Logo */}
+            <div className="w-32 h-32 flex-shrink-0 flex items-center justify-center bg-white/10 rounded-full p-4">
+              <img 
+                src={logoPath}
+                alt={team.name}
+                className="w-full h-full object-contain drop-shadow-2xl"
+                onError={(e) => {
+                  // If logo doesn't exist, show emoji
+                  e.currentTarget.style.display = 'none'
+                  const parent = e.currentTarget.parentElement
+                  if (parent) {
+                    const emojiSpan = document.createElement('span')
+                    emojiSpan.className = 'text-7xl md:text-8xl lg:text-9xl drop-shadow-2xl'
+                    emojiSpan.textContent = team.emoji || '🏉'
+                    parent.appendChild(emojiSpan)
+                  }
+                }}
+              />
             </div>
 
             {/* Team Info */}
@@ -319,7 +335,7 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
                   👤
                 </div>
                 <div className="text-sm font-bold text-federation-dark">
-                  {player.number}
+                  #{player.number}
                 </div>
                 <div className="text-sm font-semibold text-federation-dark">
                   {player.first_name} {player.last_name}
@@ -397,8 +413,24 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
             <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <div className="flex items-center justify-between">
                 <div className="text-center flex-1">
-                  <div className="text-3xl mb-1">{team.emoji || '🏉'}</div>
-                  <div className="text-sm font-semibold text-federation-dark">{team.name}</div>
+                  <div className="w-16 h-16 mx-auto flex items-center justify-center">
+                    <img 
+                      src={logoPath}
+                      alt={team.name}
+                      className="w-full h-full object-contain"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none'
+                        const parent = e.currentTarget.parentElement
+                        if (parent) {
+                          const emojiSpan = document.createElement('span')
+                          emojiSpan.className = 'text-3xl'
+                          emojiSpan.textContent = team.emoji || '🏉'
+                          parent.appendChild(emojiSpan)
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className="text-sm font-semibold text-federation-dark mt-1">{team.name}</div>
                 </div>
                 <div className="text-center px-6">
                   <div className="text-xs text-gray-400 uppercase tracking-wider">VS</div>
@@ -414,7 +446,8 @@ export default async function TeamDetailPage({ params }: { params: { slug: strin
                   📅 December 2026 (TBC) • 📍 {team.home_ground}
                 </p>
                 <span className="inline-block mt-2 text-xs bg-federation-green/10 text-federation-green px-3 py-1 rounded-full">
-                  Coming Soon                </span>
+                  Coming Soon
+                </span>
               </div>
             </div>
           </div>
